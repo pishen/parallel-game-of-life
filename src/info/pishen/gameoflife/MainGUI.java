@@ -1,10 +1,8 @@
 package info.pishen.gameoflife;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -26,9 +24,12 @@ public class MainGUI extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private JPanel contentPane;
+	private JPanel mainPanel, contentPanel;
 	private JScrollBar hScrollBar, vScrollBar;
-	private int contentWidth = 5000, contentHeight = 5000;
+	private int contentWidth, contentHeight;
+	private int cellSize = 10;
+	
+	private CellGrid cellGrid;
 
 	/**
 	 * Launch the application.
@@ -38,7 +39,8 @@ public class MainGUI extends JFrame {
 			public void run() {
 				try {
 					log.info("starting...");
-					MainGUI frame = new MainGUI();
+					CellGrid cellGrid = new CellGrid(500, 500);
+					MainGUI frame = new MainGUI(cellGrid);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -50,27 +52,30 @@ public class MainGUI extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public MainGUI() {
+	public MainGUI(CellGrid cellGrid) {
+		this.cellGrid = cellGrid;
+		contentWidth = cellGrid.getColNum() * cellSize;
+		contentHeight = cellGrid.getRowNum() * cellSize;
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
-		setContentPane(contentPane);
+		mainPanel = new JPanel();
+		mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		mainPanel.setLayout(new BorderLayout(0, 0));
+		setContentPane(mainPanel);
 		
 		JPanel buttomPanel = new JPanel();
-		contentPane.add(buttomPanel, BorderLayout.SOUTH);
+		mainPanel.add(buttomPanel, BorderLayout.SOUTH);
 		
 		JButton btnNewButton = new JButton("New button");
 		buttomPanel.add(btnNewButton);
 		
 		JPanel customScrollPanel = new JPanel();
-		customScrollPanel.setBackground(Color.WHITE);
-		contentPane.add(customScrollPanel, BorderLayout.CENTER);
+		mainPanel.add(customScrollPanel, BorderLayout.CENTER);
 		GridBagLayout gbl_customScrollPanel = new GridBagLayout();
 		customScrollPanel.setLayout(gbl_customScrollPanel);
 		
-		JPanel contentPanel = new ContentPanel();
+		contentPanel = new ContentPanel();
 		GridBagConstraints gbc_contentPanel = new GridBagConstraints();
 		gbc_contentPanel.weighty = 1.0;
 		gbc_contentPanel.weightx = 1.0;
@@ -86,8 +91,8 @@ public class MainGUI extends JFrame {
 		hScrollBar.addAdjustmentListener(new AdjustmentListener() {
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
-				log.info("value: " + hScrollBar.getValue() + " visible: " + hScrollBar.getVisibleAmount());
-				contentPane.repaint();
+				//log.info("value: " + hScrollBar.getValue() + " visible: " + hScrollBar.getVisibleAmount());
+				contentPanel.repaint();
 			}
 		});
 		hScrollBar.addComponentListener(new ComponentListener() {
@@ -114,6 +119,12 @@ public class MainGUI extends JFrame {
 		
 		vScrollBar = new JScrollBar();
 		vScrollBar.setMaximum(contentHeight);
+		vScrollBar.addAdjustmentListener(new AdjustmentListener() {
+			@Override
+			public void adjustmentValueChanged(AdjustmentEvent e) {
+				contentPanel.repaint();
+			}
+		});
 		vScrollBar.addComponentListener(new ComponentListener() {
 			@Override
 			public void componentShown(ComponentEvent e) {}
@@ -145,14 +156,17 @@ public class MainGUI extends JFrame {
 
 		@Override
 		protected void paintComponent(Graphics g) {
-			int xStart = 0 - (hScrollBar.getValue() % 30);
-			int yStart = 0 - (vScrollBar.getValue() % 30);
+			super.paintComponent(g);
+			int xStart = 0 - (hScrollBar.getValue() % cellSize);
+			int yStart = 0 - (vScrollBar.getValue() % cellSize);
+			int jStart = hScrollBar.getValue() / cellSize + 1;
+			int iStart = vScrollBar.getValue() / cellSize + 1;
 			//Graphics2D g2 = (Graphics2D) g;
-			for(int x = xStart, i = 0; x < this.getWidth(); x += 30, i++){
-				for(int y = yStart, j = 0; y < this.getHeight(); y += 30, j++){
-					g.drawRect(x, y, 30, 30);
+			for(int x = xStart, j = jStart; x < this.getWidth() && j < cellGrid.getColNum(); x += cellSize, j++){
+				for(int y = yStart, i = iStart; y < this.getHeight() && i < cellGrid.getRowNum(); y += cellSize, i++){
+					g.drawRect(x, y, cellSize, cellSize);
 					if((i % 2 == 0 && j % 2 == 0) || (i % 2 == 1 && j % 2 == 1)){
-						g.fillRect(x, y, 30, 30);
+						g.fillRect(x, y, cellSize, cellSize);
 					}
 				}
 			}
