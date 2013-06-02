@@ -87,7 +87,7 @@ public class MainGUI extends JFrame {
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
 				log.info("value: " + hScrollBar.getValue() + " visible: " + hScrollBar.getVisibleAmount());
-				//TODO
+				contentPane.repaint();
 			}
 		});
 		hScrollBar.addComponentListener(new ComponentListener() {
@@ -145,21 +145,17 @@ public class MainGUI extends JFrame {
 
 		@Override
 		protected void paintComponent(Graphics g) {
-			Graphics2D g2 = (Graphics2D) g;
-			//g2.draw(new Line2D.Double(0, 100, 50000, 10));
-			for(int i = 0; i < 1000; i++){
-				for(int j = 0; j < 1000; j++){
-					g2.drawRect(i*30, j*30, 30, 30);
+			int xStart = 0 - (hScrollBar.getValue() % 30);
+			int yStart = 0 - (vScrollBar.getValue() % 30);
+			//Graphics2D g2 = (Graphics2D) g;
+			for(int x = xStart, i = 0; x < this.getWidth(); x += 30, i++){
+				for(int y = yStart, j = 0; y < this.getHeight(); y += 30, j++){
+					g.drawRect(x, y, 30, 30);
 					if((i % 2 == 0 && j % 2 == 0) || (i % 2 == 1 && j % 2 == 1)){
-						g2.fillRect(i*30, j*30, 30, 30);
+						g.fillRect(x, y, 30, 30);
 					}
 				}
-				
-				//g2.draw(new Rectangle(10, i * 30, 20, 20));
 			}
-			/*for(int i = 0; i < 200; i++){
-				g2.draw(new Line2D.Double(i * 10, 0, i * 10, 5000));
-			}*/
 		}
 		
 		
