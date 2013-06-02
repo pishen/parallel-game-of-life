@@ -2,21 +2,33 @@ package info.pishen.gameoflife;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.GridLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.util.logging.Logger;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.border.Border;
+import javax.swing.JScrollBar;
 import javax.swing.border.EmptyBorder;
 
 public class MainGUI extends JFrame {
-
+	private static Logger log = Logger.getLogger(MainGUI.class.getName());
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
+	private JScrollBar hScrollBar, vScrollBar;
+	private int contentWidth = 5000, contentHeight = 5000;
 
 	/**
 	 * Launch the application.
@@ -25,6 +37,7 @@ public class MainGUI extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					log.info("starting...");
 					MainGUI frame = new MainGUI();
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -45,35 +58,111 @@ public class MainGUI extends JFrame {
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 		
-		JPanel panel = new JPanel();
-		contentPane.add(panel, BorderLayout.SOUTH);
+		JPanel buttomPanel = new JPanel();
+		contentPane.add(buttomPanel, BorderLayout.SOUTH);
 		
 		JButton btnNewButton = new JButton("New button");
-		panel.add(btnNewButton);
+		buttomPanel.add(btnNewButton);
 		
-		DemoPanel demoPanel = new DemoPanel();
-		//demoPanel.setPreferredSize(new Dimension(10000, 10000));
+		JPanel customScrollPanel = new JPanel();
+		customScrollPanel.setBackground(Color.WHITE);
+		contentPane.add(customScrollPanel, BorderLayout.CENTER);
+		GridBagLayout gbl_customScrollPanel = new GridBagLayout();
+		customScrollPanel.setLayout(gbl_customScrollPanel);
 		
-		JPanel gridPanel = new JPanel();
+		JPanel contentPanel = new ContentPanel();
+		GridBagConstraints gbc_contentPanel = new GridBagConstraints();
+		gbc_contentPanel.weighty = 1.0;
+		gbc_contentPanel.weightx = 1.0;
+		gbc_contentPanel.insets = new Insets(0, 0, 0, 0);
+		gbc_contentPanel.fill = GridBagConstraints.BOTH;
+		gbc_contentPanel.gridx = 0;
+		gbc_contentPanel.gridy = 0;
+		customScrollPanel.add(contentPanel, gbc_contentPanel);
 		
-		gridPanel.setLayout(new GridLayout(0, 190, 0, 0));
-		gridPanel.setPreferredSize(new Dimension(2000, 2000));
-		
-		Border border = BorderFactory.createLineBorder(Color.DARK_GRAY, 1);
-		for(int i = 0; i < 190; i++){
-			for(int j = 0; j < 190; j++){
-				JPanel cellPanel = new JPanel();
-				if((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0)){
-					cellPanel.setBackground(Color.DARK_GRAY);
-				}
-				cellPanel.setBorder(border);
-				gridPanel.add(cellPanel);
+		hScrollBar = new JScrollBar();
+		hScrollBar.setOrientation(JScrollBar.HORIZONTAL);
+		hScrollBar.setMaximum(contentWidth);
+		hScrollBar.addAdjustmentListener(new AdjustmentListener() {
+			@Override
+			public void adjustmentValueChanged(AdjustmentEvent e) {
+				log.info("value: " + hScrollBar.getValue() + " visible: " + hScrollBar.getVisibleAmount());
+				//TODO
 			}
+		});
+		hScrollBar.addComponentListener(new ComponentListener() {
+			@Override
+			public void componentShown(ComponentEvent e) {}
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+				hScrollBar.setVisibleAmount(hScrollBar.getWidth());
+			}
+			
+			@Override
+			public void componentMoved(ComponentEvent e) {}
+			
+			@Override
+			public void componentHidden(ComponentEvent e) {}
+		});
+		GridBagConstraints gbc_hScrollBar = new GridBagConstraints();
+		gbc_hScrollBar.insets = new Insets(0, 0, 0, 0);
+		gbc_hScrollBar.fill = GridBagConstraints.HORIZONTAL;
+		gbc_hScrollBar.gridx = 0;
+		gbc_hScrollBar.gridy = 1;
+		customScrollPanel.add(hScrollBar, gbc_hScrollBar);
+		
+		vScrollBar = new JScrollBar();
+		vScrollBar.setMaximum(contentHeight);
+		vScrollBar.addComponentListener(new ComponentListener() {
+			@Override
+			public void componentShown(ComponentEvent e) {}
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+				vScrollBar.setVisibleAmount(vScrollBar.getHeight());
+			}
+			
+			@Override
+			public void componentMoved(ComponentEvent e) {}
+			
+			@Override
+			public void componentHidden(ComponentEvent e) {}
+		});
+		GridBagConstraints gbc_vScrollBar = new GridBagConstraints();
+		gbc_vScrollBar.fill = GridBagConstraints.VERTICAL;
+		gbc_vScrollBar.gridx = 1;
+		gbc_vScrollBar.gridy = 0;
+		customScrollPanel.add(vScrollBar, gbc_vScrollBar);
+	}
+	
+	private class ContentPanel extends JPanel{
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			Graphics2D g2 = (Graphics2D) g;
+			//g2.draw(new Line2D.Double(0, 100, 50000, 10));
+			for(int i = 0; i < 1000; i++){
+				for(int j = 0; j < 1000; j++){
+					g2.drawRect(i*30, j*30, 30, 30);
+					if((i % 2 == 0 && j % 2 == 0) || (i % 2 == 1 && j % 2 == 1)){
+						g2.fillRect(i*30, j*30, 30, 30);
+					}
+				}
+				
+				//g2.draw(new Rectangle(10, i * 30, 20, 20));
+			}
+			/*for(int i = 0; i < 200; i++){
+				g2.draw(new Line2D.Double(i * 10, 0, i * 10, 5000));
+			}*/
 		}
 		
-		JScrollPane scrollPane = new JScrollPane(gridPanel);
-		//scrollPane.getViewport().setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
-		contentPane.add(scrollPane, BorderLayout.CENTER);
+		
 	}
 
 }
