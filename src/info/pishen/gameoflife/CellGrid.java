@@ -1,6 +1,7 @@
 package info.pishen.gameoflife;
 
 public class CellGrid {
+	private MainGUI gui;
 	private boolean[][] grid;
 	
 	public CellGrid(int rowNum, int colNum){
@@ -12,6 +13,10 @@ public class CellGrid {
 				}
 			}
 		}
+	}
+	
+	public void setMainGUI(MainGUI gui){
+		this.gui = gui;
 	}
 	
 	public int getRowNum(){
@@ -30,7 +35,12 @@ public class CellGrid {
 		return duplicateGrid;
 	}
 	
-	public synchronized void setNewGrid(boolean[][] newGrid){
+	public void setNewGrid(boolean[][] newGrid){
+		replaceGrid(newGrid);
+		gui.repaintGrid();
+	}
+	
+	private synchronized void replaceGrid(boolean[][] newGrid){
 		grid = newGrid;
 	}
 	

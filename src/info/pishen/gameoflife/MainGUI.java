@@ -54,6 +54,7 @@ public class MainGUI extends JFrame {
 	 */
 	public MainGUI(CellGrid cellGrid) {
 		this.cellGrid = cellGrid;
+		cellGrid.setMainGUI(this);
 		contentWidth = cellGrid.getColNum() * cellSize;
 		contentHeight = cellGrid.getRowNum() * cellSize;
 		
@@ -145,6 +146,10 @@ public class MainGUI extends JFrame {
 		gbc_vScrollBar.gridx = 1;
 		gbc_vScrollBar.gridy = 0;
 		customScrollPanel.add(vScrollBar, gbc_vScrollBar);
+	}
+	
+	public void repaintGrid(){
+		contentPanel.repaint();
 	}
 	
 	private class ContentPanel extends JPanel{
