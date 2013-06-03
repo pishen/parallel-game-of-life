@@ -22,11 +22,20 @@ public class CellGrid {
 		return grid[0].length;
 	}
 	
+	public boolean[][] getDuplicateGrid(){
+		boolean[][] duplicateGrid = new boolean[grid.length][grid[0].length];
+		for(int i = 0; i < grid.length; i++){
+			System.arraycopy(grid[i], 0, duplicateGrid[i], 0, grid[i].length);
+		}
+		return duplicateGrid;
+	}
+	
 	public synchronized void setNewGrid(boolean[][] newGrid){
 		grid = newGrid;
 	}
 	
 	public synchronized boolean[][] getPartialGrid(int iStart, int jStart, int iEnd, int jEnd){
+		//TODO use arrayCopy()
 		boolean[][] partialGrid = new boolean[iEnd - iStart + 1][jEnd - jStart + 1];
 		for(int iOut = 0, iGrid = iStart; iGrid <= iEnd; iOut++, iGrid++){
 			for(int jOut = 0, jGrid = jStart; jGrid <= jEnd; jOut++, jGrid++){
