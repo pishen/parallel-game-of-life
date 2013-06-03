@@ -27,7 +27,7 @@ public class MainGUI extends JFrame {
 	private JPanel mainPanel, contentPanel;
 	private JScrollBar hScrollBar, vScrollBar;
 	private int contentWidth, contentHeight;
-	private int cellSize = 10;
+	private int cellSize = 5;
 	
 	private CellGrid cellGrid;
 
@@ -67,8 +67,8 @@ public class MainGUI extends JFrame {
 		JPanel buttomPanel = new JPanel();
 		mainPanel.add(buttomPanel, BorderLayout.SOUTH);
 		
-		JButton btnNewButton = new JButton("New button");
-		buttomPanel.add(btnNewButton);
+		JButton runPauseButton = new JButton("Run");
+		buttomPanel.add(runPauseButton);
 		
 		JPanel customScrollPanel = new JPanel();
 		mainPanel.add(customScrollPanel, BorderLayout.CENTER);
@@ -159,13 +159,16 @@ public class MainGUI extends JFrame {
 			super.paintComponent(g);
 			int xStart = 0 - (hScrollBar.getValue() % cellSize);
 			int yStart = 0 - (vScrollBar.getValue() % cellSize);
-			int jStart = hScrollBar.getValue() / cellSize + 1;
-			int iStart = vScrollBar.getValue() / cellSize + 1;
+			int jStart = hScrollBar.getValue() / cellSize;
+			int iStart = vScrollBar.getValue() / cellSize;
+			int jEnd = jStart + hScrollBar.getVisibleAmount() / cellSize + 1;
+			int iEnd = iStart + vScrollBar.getVisibleAmount() / cellSize + 1;
 			//Graphics2D g2 = (Graphics2D) g;
-			for(int x = xStart, j = jStart; x < this.getWidth() && j < cellGrid.getColNum(); x += cellSize, j++){
-				for(int y = yStart, i = iStart; y < this.getHeight() && i < cellGrid.getRowNum(); y += cellSize, i++){
+			boolean[][] partialGrid = cellGrid.getPartialGrid(iStart, jStart, iEnd, jEnd);
+			for(int x = xStart, j = 0; j < partialGrid[0].length; x += cellSize, j++){
+				for(int y = yStart, i = 0; i < partialGrid.length; y += cellSize, i++){
 					g.drawRect(x, y, cellSize, cellSize);
-					if((i % 2 == 0 && j % 2 == 0) || (i % 2 == 1 && j % 2 == 1)){
+					if(partialGrid[i][j] == true){
 						g.fillRect(x, y, cellSize, cellSize);
 					}
 				}
