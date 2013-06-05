@@ -104,11 +104,15 @@ public class MainGUI extends JFrame {
 		buttomPanel.add(runPauseButton);
 		
 		threadNumSlider = new JSlider();
+		threadNumSlider.setMinimum(1);
+		threadNumSlider.setMaximum(6);
+		threadNumSlider.setValue(1);
 		threadNumSlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				log.info("value: " + threadNumSlider.getValue());
 				//TODO change number of threads
+				
 			}
 		});
 		
@@ -220,16 +224,16 @@ public class MainGUI extends JFrame {
 		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
-			int xStart = 0 - (hScrollBar.getValue() % cellSize);
-			int yStart = 0 - (vScrollBar.getValue() % cellSize);
-			int jStart = hScrollBar.getValue() / cellSize;
-			int iStart = vScrollBar.getValue() / cellSize;
-			int jEnd = Math.min(jStart + hScrollBar.getVisibleAmount() / cellSize + 1, cellGrid.getColNum() - 1);
-			int iEnd = Math.min(iStart + vScrollBar.getVisibleAmount() / cellSize + 1, cellGrid.getRowNum() - 1);
+			int xLeft = 0 - (hScrollBar.getValue() % cellSize);
+			int yTop = 0 - (vScrollBar.getValue() % cellSize);
+			int jLeft = hScrollBar.getValue() / cellSize;
+			int iTop = vScrollBar.getValue() / cellSize;
+			int jRight = Math.min(jLeft + hScrollBar.getVisibleAmount() / cellSize + 1, cellGrid.getColNum() - 1);
+			int iBottom = Math.min(iTop + vScrollBar.getVisibleAmount() / cellSize + 1, cellGrid.getRowNum() - 1);
 
-			boolean[][] partialGrid = cellGrid.getPartialGrid(iStart, jStart, iEnd, jEnd);
-			for(int x = xStart, j = 0; j < partialGrid[0].length; x += cellSize, j++){
-				for(int y = yStart, i = 0; i < partialGrid.length; y += cellSize, i++){
+			boolean[][] partialGrid = cellGrid.getPartialGrid(iTop, jLeft, iBottom, jRight);
+			for(int x = xLeft, j = 0; j < partialGrid[0].length; x += cellSize, j++){
+				for(int y = yTop, i = 0; i < partialGrid.length; y += cellSize, i++){
 					g.drawRect(x, y, cellSize, cellSize);
 					if(partialGrid[i][j] == true){
 						g.fillRect(x, y, cellSize, cellSize);

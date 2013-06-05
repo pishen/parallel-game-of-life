@@ -47,10 +47,11 @@ public class CellGrid {
 		grid = newGrid;
 	}
 	
-	public synchronized boolean[][] getPartialGrid(int iStart, int jStart, int iEnd, int jEnd){
-		boolean[][] partialGrid = new boolean[iEnd - iStart + 1][jEnd - jStart + 1];
-		for(int iOut = 0, iGrid = iStart; iGrid <= iEnd; iOut++, iGrid++){
-			System.arraycopy(grid[iGrid], jStart, partialGrid[iOut], 0, partialGrid[iOut].length);
+	public synchronized boolean[][] getPartialGrid(int iTop, int jLeft, int iBottom, int jRight){
+		//iBottom and jRight are included
+		boolean[][] partialGrid = new boolean[iBottom - iTop + 1][jRight - jLeft + 1];
+		for(int iOut = 0, iGrid = iTop; iGrid <= iBottom; iOut++, iGrid++){
+			System.arraycopy(grid[iGrid], jLeft, partialGrid[iOut], 0, partialGrid[iOut].length);
 		}
 		return partialGrid;
 	}
