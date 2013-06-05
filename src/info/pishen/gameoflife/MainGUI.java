@@ -51,7 +51,7 @@ public class MainGUI extends JFrame {
 			public void run() {
 				try {
 					log.info("starting...");
-					CellGrid cellGrid = new CellGrid(2000, 2000);
+					CellGrid cellGrid = new CellGrid(3000, 3000);
 					MainGUI frame = new MainGUI(cellGrid, new ParallelGenerator(cellGrid));
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -105,14 +105,14 @@ public class MainGUI extends JFrame {
 		
 		threadNumSlider = new JSlider();
 		threadNumSlider.setMinimum(1);
-		threadNumSlider.setMaximum(6);
+		threadNumSlider.setMaximum(4);
 		threadNumSlider.setValue(1);
 		threadNumSlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				log.info("value: " + threadNumSlider.getValue());
 				//TODO change number of threads
-				
+				generator.setParallel(threadNumSlider.getValue());
 			}
 		});
 		

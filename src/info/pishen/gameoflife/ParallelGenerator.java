@@ -35,14 +35,10 @@ public class ParallelGenerator {
 		@Override
 		public void run() {
 			while(true){
-				/*try {
-					Thread.sleep(200);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}*/
-				
 				oldGrid = cellGrid.getDuplicateGrid();
 				newGrid = new boolean[oldGrid.length][oldGrid[0].length];
+				
+				long startTime = System.currentTimeMillis();
 				
 				SubUpdater[] subUpdaters = new SubUpdater[parallel];
 				int blockSize = oldGrid.length / subUpdaters.length;
@@ -58,6 +54,9 @@ public class ParallelGenerator {
 						e.printStackTrace();
 					}
 				}
+				
+				long endTime = System.currentTimeMillis();
+				log.info("update time: " + ((endTime - startTime) / 1000.0) + " secs");
 				
 				if(toPause){
 					mainGUI.enableRun();
