@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentEvent;
@@ -17,6 +19,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.JSlider;
 
 public class MainGUI extends JFrame {
 	private static Logger log = Logger.getLogger(MainGUI.class.getName());
@@ -25,11 +30,15 @@ public class MainGUI extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel mainPanel, contentPanel;
+	private JButton runPauseButton;
 	private JScrollBar hScrollBar, vScrollBar;
 	private int contentWidth, contentHeight;
-	private int cellSize = 5;
+	private int cellSize = 10;
+	private boolean isRunning = false;
 	
 	private CellGrid cellGrid;
+	private ParallelGenerator generator;
+	private JSlider threadNumSlider;
 
 	/**
 	 * Launch the application.
@@ -40,7 +49,7 @@ public class MainGUI extends JFrame {
 				try {
 					log.info("starting...");
 					CellGrid cellGrid = new CellGrid(500, 500);
-					MainGUI frame = new MainGUI(cellGrid);
+					MainGUI frame = new MainGUI(cellGrid, new ParallelGenerator(cellGrid));
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -52,14 +61,15 @@ public class MainGUI extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public MainGUI(CellGrid cellGrid) {
+	public MainGUI(CellGrid cellGrid, ParallelGenerator generatorArg) {
 		this.cellGrid = cellGrid;
+		this.generator = generatorArg;
 		cellGrid.setMainGUI(this);
 		contentWidth = cellGrid.getColNum() * cellSize;
 		contentHeight = cellGrid.getRowNum() * cellSize;
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 650, 500);
 		mainPanel = new JPanel();
 		mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		mainPanel.setLayout(new BorderLayout(0, 0));
@@ -68,8 +78,35 @@ public class MainGUI extends JFrame {
 		JPanel buttomPanel = new JPanel();
 		mainPanel.add(buttomPanel, BorderLayout.SOUTH);
 		
-		JButton runPauseButton = new JButton("Run");
+		runPauseButton = new JButton("Run");
+		runPauseButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(isRunning){
+					isRunning = false;
+					runPauseButton.setText("Run");
+					runPauseButton.setEnabled(false);
+					//TODO pause
+					generator.pause(MainGUI.this);
+				}else{
+					isRunning = true;
+					runPauseButton.setText("Pause");
+					//TODO start
+					generator.run();
+				}
+			}
+		});
 		buttomPanel.add(runPauseButton);
+		
+		threadNumSlider = new JSlider();
+		threadNumSlider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				log.info("value: " + threadNumSlider.getValue());
+				//TODO change number of threads
+			}
+		});
+		buttomPanel.add(threadNumSlider);
 		
 		JPanel customScrollPanel = new JPanel();
 		mainPanel.add(customScrollPanel, BorderLayout.CENTER);
@@ -92,7 +129,6 @@ public class MainGUI extends JFrame {
 		hScrollBar.addAdjustmentListener(new AdjustmentListener() {
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
-				//log.info("value: " + hScrollBar.getValue() + " visible: " + hScrollBar.getVisibleAmount());
 				contentPanel.repaint();
 			}
 		});
@@ -152,6 +188,10 @@ public class MainGUI extends JFrame {
 		contentPanel.repaint();
 	}
 	
+	public void enableRun(){
+		runPauseButton.setEnabled(true);
+	}
+	
 	private class ContentPanel extends JPanel{
 
 		/**
@@ -166,8 +206,8 @@ public class MainGUI extends JFrame {
 			int yStart = 0 - (vScrollBar.getValue() % cellSize);
 			int jStart = hScrollBar.getValue() / cellSize;
 			int iStart = vScrollBar.getValue() / cellSize;
-			int jEnd = jStart + hScrollBar.getVisibleAmount() / cellSize + 1;
-			int iEnd = iStart + vScrollBar.getVisibleAmount() / cellSize + 1;
+			int jEnd = Math.min(jStart + hScrollBar.getVisibleAmount() / cellSize + 1, cellGrid.getColNum() - 1);
+			int iEnd = Math.min(iStart + vScrollBar.getVisibleAmount() / cellSize + 1, cellGrid.getRowNum() - 1);
 			//Graphics2D g2 = (Graphics2D) g;
 			boolean[][] partialGrid = cellGrid.getPartialGrid(iStart, jStart, iEnd, jEnd);
 			for(int x = xStart, j = 0; j < partialGrid[0].length; x += cellSize, j++){
