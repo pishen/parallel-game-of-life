@@ -23,6 +23,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.JSlider;
 import java.awt.FlowLayout;
+import javax.swing.JLabel;
 
 public class MainGUI extends JFrame {
 	private static Logger log = Logger.getLogger(MainGUI.class.getName());
@@ -42,6 +43,7 @@ public class MainGUI extends JFrame {
 	private JSlider threadNumSlider;
 	private JButton button;
 	private JButton button_1;
+	private JLabel threadNumLabel;
 
 	/**
 	 * Launch the application.
@@ -51,7 +53,8 @@ public class MainGUI extends JFrame {
 			public void run() {
 				try {
 					log.info("starting...");
-					CellGrid cellGrid = new CellGrid(3000, 3000);
+					log.info("processors: " + Runtime.getRuntime().availableProcessors());
+					CellGrid cellGrid = new CellGrid(2000, 2000);
 					MainGUI frame = new MainGUI(cellGrid, new ParallelGenerator(cellGrid));
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -105,12 +108,13 @@ public class MainGUI extends JFrame {
 		
 		threadNumSlider = new JSlider();
 		threadNumSlider.setMinimum(1);
-		threadNumSlider.setMaximum(4);
+		threadNumSlider.setMaximum(Runtime.getRuntime().availableProcessors());
 		threadNumSlider.setValue(1);
 		threadNumSlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				log.info("value: " + threadNumSlider.getValue());
+				//log.info("value: " + threadNumSlider.getValue());
+				threadNumLabel.setText("" + threadNumSlider.getValue());
 				//TODO change number of threads
 				generator.setParallel(threadNumSlider.getValue());
 			}
@@ -122,6 +126,9 @@ public class MainGUI extends JFrame {
 		button_1 = new JButton("-");
 		buttomPanel.add(button_1);
 		buttomPanel.add(threadNumSlider);
+		
+		threadNumLabel = new JLabel("1");
+		buttomPanel.add(threadNumLabel);
 		
 		JPanel customScrollPanel = new JPanel();
 		mainPanel.add(customScrollPanel, BorderLayout.CENTER);
