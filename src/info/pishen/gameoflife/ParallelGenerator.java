@@ -30,12 +30,12 @@ public class ParallelGenerator {
 		@Override
 		public void run() {
 			while(true){
-				try {
-					Thread.sleep(500);
-					//log.info("test");
+				/*try {
+					Thread.sleep(200);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}
+				}*/
+				
 				oldGrid = cellGrid.getDuplicateGrid();
 				newGrid = new boolean[oldGrid.length][oldGrid[0].length];
 				for(int i = 0; i < oldGrid.length; i++){

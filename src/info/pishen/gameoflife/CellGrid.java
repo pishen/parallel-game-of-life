@@ -51,9 +51,6 @@ public class CellGrid {
 		boolean[][] partialGrid = new boolean[iEnd - iStart + 1][jEnd - jStart + 1];
 		for(int iOut = 0, iGrid = iStart; iGrid <= iEnd; iOut++, iGrid++){
 			System.arraycopy(grid[iGrid], jStart, partialGrid[iOut], 0, partialGrid[iOut].length);
-			/*for(int jOut = 0, jGrid = jStart; jGrid <= jEnd; jOut++, jGrid++){
-				partialGrid[iOut][jOut] = grid[iGrid][jGrid];
-			}*/
 		}
 		return partialGrid;
 	}
