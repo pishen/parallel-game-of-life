@@ -3,6 +3,7 @@ package info.pishen.gameoflife;
 import java.util.logging.Logger;
 
 public class CellGrid {
+	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(CellGrid.class.getName());
 	private MainGUI gui;
 	private boolean[][] grid;
@@ -38,6 +39,10 @@ public class CellGrid {
 		return duplicateGrid;
 	}
 	
+	public synchronized void updateGrid(int i, int j, boolean value){
+		grid[i][j] = value;
+	}
+	
 	public void setNewGrid(boolean[][] newGrid){
 		replaceGrid(newGrid);
 		gui.repaintGrid();
@@ -45,6 +50,10 @@ public class CellGrid {
 	
 	private synchronized void replaceGrid(boolean[][] newGrid){
 		grid = newGrid;
+	}
+	
+	public synchronized boolean getValue(int i, int j){
+		return grid[i][j];
 	}
 	
 	public synchronized boolean[][] getPartialGrid(int iTop, int jLeft, int iBottom, int jRight){

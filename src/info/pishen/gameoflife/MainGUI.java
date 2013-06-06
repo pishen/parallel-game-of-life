@@ -12,6 +12,9 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
@@ -34,10 +37,11 @@ public class MainGUI extends JFrame {
 	private JPanel mainPanel, contentPanel;
 	private JButton runPauseButton;
 	private JScrollBar hScrollBar, vScrollBar;
-	private int contentWidth, contentHeight;
+	//private int contentWidth, contentHeight;
 	private int cellSize = 10;
 	private final int MIN_CELL_SIZE = 2, MAX_CELL_SIZE = 20;
 	private boolean isRunning = false;
+	private boolean updateValue;
 	
 	private CellGrid cellGrid;
 	private ParallelGenerator generator;
@@ -72,8 +76,8 @@ public class MainGUI extends JFrame {
 		this.cellGrid = cellGridArg;
 		this.generator = generatorArg;
 		cellGrid.setMainGUI(this);
-		contentWidth = cellGrid.getColNum() * cellSize;
-		contentHeight = cellGrid.getRowNum() * cellSize;
+		//contentWidth = cellGrid.getColNum() * cellSize;
+		//contentHeight = cellGrid.getRowNum() * cellSize;
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 650, 500);
@@ -95,12 +99,12 @@ public class MainGUI extends JFrame {
 					isRunning = false;
 					runPauseButton.setText("Run");
 					runPauseButton.setEnabled(false);
-					//TODO pause
+					//pause
 					generator.pause(MainGUI.this);
 				}else{
 					isRunning = true;
 					runPauseButton.setText("Pause");
-					//TODO start
+					//run
 					generator.run();
 				}
 			}
@@ -114,9 +118,8 @@ public class MainGUI extends JFrame {
 		threadNumSlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				//log.info("value: " + threadNumSlider.getValue());
 				threadNumLabel.setText("" + threadNumSlider.getValue());
-				//TODO change number of threads
+				//change number of threads
 				generator.setParallel(threadNumSlider.getValue());
 			}
 		});
@@ -159,6 +162,46 @@ public class MainGUI extends JFrame {
 		customScrollPanel.setLayout(gbl_customScrollPanel);
 		
 		contentPanel = new ContentPanel();
+		contentPanel.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseReleased(MouseEvent e) {}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				int x = e.getX() + hScrollBar.getValue();
+				int y = e.getY() + vScrollBar.getValue();
+				if(x >= 0 && x < hScrollBar.getMaximum() && y >= 0 && y < vScrollBar.getMaximum()){
+					int i = y / cellSize, j = x / cellSize;
+					updateValue = !cellGrid.getValue(i, j);
+					cellGrid.updateGrid(i, j, updateValue);
+					contentPanel.repaint();
+				}
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {}
+		});
+		contentPanel.addMouseMotionListener(new MouseMotionListener() {
+			@Override
+			public void mouseMoved(MouseEvent e) {}
+			
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				int x = e.getX() + hScrollBar.getValue();
+				int y = e.getY() + vScrollBar.getValue();
+				if(x >= 0 && x < hScrollBar.getMaximum() && y >= 0 && y < vScrollBar.getMaximum()){
+					int i = y / cellSize, j = x / cellSize;
+					cellGrid.updateGrid(i, j, updateValue);
+					contentPanel.repaint();
+				}
+			}
+		});
 		GridBagConstraints gbc_contentPanel = new GridBagConstraints();
 		gbc_contentPanel.weighty = 1.0;
 		gbc_contentPanel.weightx = 1.0;
@@ -170,7 +213,7 @@ public class MainGUI extends JFrame {
 		
 		hScrollBar = new JScrollBar();
 		hScrollBar.setOrientation(JScrollBar.HORIZONTAL);
-		hScrollBar.setMaximum(contentWidth);
+		hScrollBar.setMaximum(cellGrid.getColNum() * cellSize);
 		hScrollBar.addAdjustmentListener(new AdjustmentListener() {
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
@@ -201,7 +244,7 @@ public class MainGUI extends JFrame {
 		customScrollPanel.add(hScrollBar, gbc_hScrollBar);
 		
 		vScrollBar = new JScrollBar();
-		vScrollBar.setMaximum(contentHeight);
+		vScrollBar.setMaximum(cellGrid.getRowNum() * cellSize);
 		vScrollBar.addAdjustmentListener(new AdjustmentListener() {
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
@@ -232,10 +275,8 @@ public class MainGUI extends JFrame {
 	}
 	
 	private void updateScale(){
-		contentWidth = cellGrid.getColNum() * cellSize;
-		contentHeight = cellGrid.getRowNum() * cellSize;
-		hScrollBar.setMaximum(contentWidth);
-		vScrollBar.setMaximum(contentHeight);
+		hScrollBar.setMaximum(cellGrid.getColNum() * cellSize);
+		vScrollBar.setMaximum(cellGrid.getRowNum() * cellSize);
 		contentPanel.repaint();
 	}
 	
