@@ -36,13 +36,14 @@ public class MainGUI extends JFrame {
 	private JScrollBar hScrollBar, vScrollBar;
 	private int contentWidth, contentHeight;
 	private int cellSize = 10;
+	private final int MIN_CELL_SIZE = 2, MAX_CELL_SIZE = 20;
 	private boolean isRunning = false;
 	
 	private CellGrid cellGrid;
 	private ParallelGenerator generator;
 	private JSlider threadNumSlider;
-	private JButton button;
-	private JButton button_1;
+	private JButton zoomIn;
+	private JButton zoomOut;
 	private JLabel threadNumLabel;
 
 	/**
@@ -67,8 +68,8 @@ public class MainGUI extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public MainGUI(CellGrid cellGrid, ParallelGenerator generatorArg) {
-		this.cellGrid = cellGrid;
+	public MainGUI(CellGrid cellGridArg, ParallelGenerator generatorArg) {
+		this.cellGrid = cellGridArg;
 		this.generator = generatorArg;
 		cellGrid.setMainGUI(this);
 		contentWidth = cellGrid.getColNum() * cellSize;
@@ -120,11 +121,33 @@ public class MainGUI extends JFrame {
 			}
 		});
 		
-		button = new JButton("+");
-		buttomPanel.add(button);
+		zoomIn = new JButton("+");
+		zoomIn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cellSize++;
+				zoomOut.setEnabled(true);
+				if(cellSize == MAX_CELL_SIZE){
+					zoomIn.setEnabled(false);
+				}
+				updateScale();
+			}
+		});
+		buttomPanel.add(zoomIn);
 		
-		button_1 = new JButton("-");
-		buttomPanel.add(button_1);
+		zoomOut = new JButton("-");
+		zoomOut.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cellSize--;
+				zoomIn.setEnabled(true);
+				if(cellSize == MIN_CELL_SIZE){
+					zoomOut.setEnabled(false);
+				}
+				updateScale();
+			}
+		});
+		buttomPanel.add(zoomOut);
 		buttomPanel.add(threadNumSlider);
 		
 		threadNumLabel = new JLabel("1");
@@ -206,6 +229,14 @@ public class MainGUI extends JFrame {
 		gbc_vScrollBar.gridx = 1;
 		gbc_vScrollBar.gridy = 0;
 		customScrollPanel.add(vScrollBar, gbc_vScrollBar);
+	}
+	
+	private void updateScale(){
+		contentWidth = cellGrid.getColNum() * cellSize;
+		contentHeight = cellGrid.getRowNum() * cellSize;
+		hScrollBar.setMaximum(contentWidth);
+		vScrollBar.setMaximum(contentHeight);
+		contentPanel.repaint();
 	}
 	
 	public void repaintGrid(){
