@@ -170,6 +170,9 @@ public class MainGUI extends JFrame {
 			public void mousePressed(MouseEvent e) {
 				int x = e.getX() + hScrollBar.getValue();
 				int y = e.getY() + vScrollBar.getValue();
+				if(isRunning || runPauseButton.isEnabled() == false){
+					return;
+				}
 				if(x >= 0 && x < hScrollBar.getMaximum() && y >= 0 && y < vScrollBar.getMaximum()){
 					int i = y / cellSize, j = x / cellSize;
 					updateValue = !cellGrid.getValue(i, j);
@@ -195,6 +198,9 @@ public class MainGUI extends JFrame {
 			public void mouseDragged(MouseEvent e) {
 				int x = e.getX() + hScrollBar.getValue();
 				int y = e.getY() + vScrollBar.getValue();
+				if(isRunning || runPauseButton.isEnabled() == false){
+					return;
+				}
 				if(x >= 0 && x < hScrollBar.getMaximum() && y >= 0 && y < vScrollBar.getMaximum()){
 					int i = y / cellSize, j = x / cellSize;
 					cellGrid.updateGrid(i, j, updateValue);
