@@ -1,5 +1,10 @@
 package info.pishen.gameoflife;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
 public class CellGrid {
@@ -8,13 +13,64 @@ public class CellGrid {
 	private MainGUI gui;
 	private boolean[][] grid;
 	
-	public CellGrid(int rowNum, int colNum){
-		grid = new boolean[rowNum][colNum];
-		for(int i = 0; i < rowNum; i++){
-			for(int j = 0; j < colNum; j++){
-				if(Math.random() > 0.6){
-					grid[i][j] = true;
+	public CellGrid(String patternName) throws NumberFormatException, IOException, URISyntaxException{
+		if(patternName.equals("clear")){
+			grid = new boolean[2000][2000];
+			return;
+		}
+		
+		File pattern = new File(getClass().getResource("/pattern/" + patternName).toURI());
+		
+		BufferedReader in = new BufferedReader(new FileReader(pattern));
+		int width = 1000, height = 1000, iStart = 0, jStart = 0;
+		String content = "";
+		String line = null;
+		while((line = in.readLine()) != null){
+			if(line.startsWith("#")){
+				continue;
+			}else if(line.startsWith("x")){
+				String[] infos = line.split(", ");
+				for(String info: infos){
+					if(info.startsWith("w")){
+						width = Integer.parseInt(info.split(" = ")[1]);
+					}else if(info.startsWith("h")){
+						height = Integer.parseInt(info.split(" = ")[1]);
+					}else if(info.startsWith("i")){
+						iStart = Integer.parseInt(info.split(" = ")[1]);
+					}else if(info.startsWith("j")){
+						jStart = Integer.parseInt(info.split(" = ")[1]);
+					}
 				}
+			}else{
+				content += line;
+			}
+		}
+		in.close();
+		
+		grid = new boolean[height][width];
+		int iCurrent = iStart, jCurrent = jStart;
+		String countStr = "";
+		for(int i = 0; i < content.length(); i++){
+			if(content.charAt(i) == 'b'){
+				jCurrent += (countStr.equals("") ? 1 : Integer.parseInt(countStr));
+				countStr = "";
+			}else if(content.charAt(i) == 'o'){
+				int count = (countStr.equals("") ? 1 : Integer.parseInt(countStr));
+				for(int j = 0; j < count; j++){
+					if(iCurrent < height && jCurrent < width){
+						grid[iCurrent][jCurrent] = true;
+					}
+					jCurrent++;
+				}
+				countStr = "";
+			}else if(content.charAt(i) == '$'){
+				jCurrent = jStart;
+				iCurrent += (countStr.equals("") ? 1 : Integer.parseInt(countStr));
+				countStr = "";
+			}else if(content.charAt(i) == '!'){
+				break;
+			}else{
+				countStr += Integer.parseInt(content.substring(i, i + 1));
 			}
 		}
 	}

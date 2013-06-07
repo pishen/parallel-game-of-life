@@ -2,6 +2,7 @@ package info.pishen.gameoflife;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -15,18 +16,23 @@ import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
+import javax.swing.JSlider;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.JSlider;
-import java.awt.FlowLayout;
-import javax.swing.JLabel;
 
 public class MainGUI extends JFrame {
 	private static Logger log = Logger.getLogger(MainGUI.class.getName());
@@ -49,6 +55,7 @@ public class MainGUI extends JFrame {
 	private JButton zoomIn;
 	private JButton zoomOut;
 	private JLabel threadNumLabel;
+	private JComboBox<String> patternSelector;
 
 	/**
 	 * Launch the application.
@@ -59,8 +66,7 @@ public class MainGUI extends JFrame {
 				try {
 					log.info("starting...");
 					log.info("processors: " + Runtime.getRuntime().availableProcessors());
-					CellGrid cellGrid = new CellGrid(2000, 2000);
-					MainGUI frame = new MainGUI(cellGrid, new ParallelGenerator(cellGrid));
+					MainGUI frame = new MainGUI();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -71,16 +77,17 @@ public class MainGUI extends JFrame {
 
 	/**
 	 * Create the frame.
+	 * @throws URISyntaxException 
+	 * @throws IOException 
+	 * @throws NumberFormatException 
 	 */
-	public MainGUI(CellGrid cellGridArg, ParallelGenerator generatorArg) {
-		this.cellGrid = cellGridArg;
-		this.generator = generatorArg;
+	public MainGUI() throws URISyntaxException, NumberFormatException, IOException {
+		cellGrid = new CellGrid("clear");
 		cellGrid.setMainGUI(this);
-		//contentWidth = cellGrid.getColNum() * cellSize;
-		//contentHeight = cellGrid.getRowNum() * cellSize;
+		generator = new ParallelGenerator(cellGrid);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 650, 500);
+		setBounds(100, 100, 850, 550);
 		mainPanel = new JPanel();
 		mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		mainPanel.setLayout(new BorderLayout(0, 0));
@@ -104,25 +111,13 @@ public class MainGUI extends JFrame {
 				}else{
 					isRunning = true;
 					runPauseButton.setText("Pause");
+					patternSelector.setEnabled(false);
 					//run
 					generator.run();
 				}
 			}
 		});
 		buttomPanel.add(runPauseButton);
-		
-		threadNumSlider = new JSlider();
-		threadNumSlider.setMinimum(1);
-		threadNumSlider.setMaximum(Runtime.getRuntime().availableProcessors());
-		threadNumSlider.setValue(1);
-		threadNumSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				threadNumLabel.setText("" + threadNumSlider.getValue());
-				//change number of threads
-				generator.setParallel(threadNumSlider.getValue());
-			}
-		});
 		
 		zoomIn = new JButton("+");
 		zoomIn.addActionListener(new ActionListener() {
@@ -151,9 +146,52 @@ public class MainGUI extends JFrame {
 			}
 		});
 		buttomPanel.add(zoomOut);
+		
+		File patternDir = new File(getClass().getResource("/pattern").toURI());
+		String[] customPatterns = patternDir.list();
+		String[] allPatterns = new String[patternDir.list().length + 1];
+		allPatterns[0] = "clear";
+		for(int i = 0; i < customPatterns.length; i++){
+			allPatterns[i + 1] = customPatterns[i];
+		}
+		patternSelector = new JComboBox<String>(allPatterns);
+		patternSelector.setSelectedIndex(0);
+		patternSelector.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox<String> cb = (JComboBox<String>)e.getSource();
+				//log.info("selected: " + (String)cb.getSelectedItem());
+				try {
+					cellGrid = new CellGrid((String)cb.getSelectedItem());
+					cellGrid.setMainGUI(MainGUI.this);
+					generator = new ParallelGenerator(cellGrid);
+					hScrollBar.setValue(0);
+					vScrollBar.setValue(0);
+					hScrollBar.setMaximum(cellGrid.getColNum() * cellSize);
+					vScrollBar.setMaximum(cellGrid.getRowNum() * cellSize);
+					contentPanel.repaint();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		buttomPanel.add(patternSelector);
+		
+		threadNumSlider = new JSlider();
+		threadNumSlider.setMinimum(1);
+		threadNumSlider.setMaximum(Runtime.getRuntime().availableProcessors());
+		threadNumSlider.setValue(1);
+		threadNumSlider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				threadNumLabel.setText("number of threads: " + threadNumSlider.getValue());
+				//change number of threads
+				generator.setParallel(threadNumSlider.getValue());
+			}
+		});
 		buttomPanel.add(threadNumSlider);
 		
-		threadNumLabel = new JLabel("1");
+		threadNumLabel = new JLabel("number of threads: 1");
 		buttomPanel.add(threadNumLabel);
 		
 		JPanel customScrollPanel = new JPanel();
@@ -297,6 +335,7 @@ public class MainGUI extends JFrame {
 	
 	public void enableRun(){
 		runPauseButton.setEnabled(true);
+		patternSelector.setEnabled(true);
 	}
 	
 	private class ContentPanel extends JPanel{
