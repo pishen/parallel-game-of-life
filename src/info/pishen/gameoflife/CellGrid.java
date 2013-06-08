@@ -19,7 +19,7 @@ public class CellGrid {
 			return;
 		}
 		
-		File pattern = new File(getClass().getResource("/pattern/" + patternName).toURI());
+		File pattern = new File("pattern/" + patternName);
 		
 		BufferedReader in = new BufferedReader(new FileReader(pattern));
 		int width = 1000, height = 1000, iStart = 0, jStart = 0;

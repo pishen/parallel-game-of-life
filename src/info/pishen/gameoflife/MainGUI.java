@@ -147,7 +147,7 @@ public class MainGUI extends JFrame {
 		});
 		buttomPanel.add(zoomOut);
 		
-		File patternDir = new File(getClass().getResource("/pattern").toURI());
+		File patternDir = new File("pattern");
 		String[] customPatterns = patternDir.list();
 		String[] allPatterns = new String[patternDir.list().length + 1];
 		allPatterns[0] = "clear";
