@@ -19,8 +19,6 @@ import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
@@ -55,6 +53,7 @@ public class MainGUI extends JFrame {
 	private JButton zoomIn;
 	private JButton zoomOut;
 	private JLabel threadNumLabel;
+	private JLabel updateTimeLabel;
 	private JComboBox<String> patternSelector;
 
 	/**
@@ -84,7 +83,7 @@ public class MainGUI extends JFrame {
 	public MainGUI() throws URISyntaxException, NumberFormatException, IOException {
 		cellGrid = new CellGrid("clear");
 		cellGrid.setMainGUI(this);
-		generator = new ParallelGenerator(cellGrid);
+		generator = new ParallelGenerator(cellGrid, this);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 850, 550);
@@ -107,7 +106,7 @@ public class MainGUI extends JFrame {
 					runPauseButton.setText("Run");
 					runPauseButton.setEnabled(false);
 					//pause
-					generator.pause(MainGUI.this);
+					generator.pause();
 				}else{
 					isRunning = true;
 					runPauseButton.setText("Pause");
@@ -149,10 +148,11 @@ public class MainGUI extends JFrame {
 		
 		File patternDir = new File("pattern");
 		String[] customPatterns = patternDir.list();
-		String[] allPatterns = new String[patternDir.list().length + 1];
+		String[] allPatterns = new String[patternDir.list().length + 2];
 		allPatterns[0] = "clear";
+		allPatterns[1] = "random";
 		for(int i = 0; i < customPatterns.length; i++){
-			allPatterns[i + 1] = customPatterns[i];
+			allPatterns[i + 2] = customPatterns[i];
 		}
 		patternSelector = new JComboBox<String>(allPatterns);
 		patternSelector.setSelectedIndex(0);
@@ -160,11 +160,10 @@ public class MainGUI extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JComboBox<String> cb = (JComboBox<String>)e.getSource();
-				//log.info("selected: " + (String)cb.getSelectedItem());
 				try {
 					cellGrid = new CellGrid((String)cb.getSelectedItem());
 					cellGrid.setMainGUI(MainGUI.this);
-					generator = new ParallelGenerator(cellGrid);
+					generator = new ParallelGenerator(cellGrid, MainGUI.this);
 					hScrollBar.setValue(0);
 					vScrollBar.setValue(0);
 					hScrollBar.setMaximum(cellGrid.getColNum() * cellSize);
@@ -184,15 +183,18 @@ public class MainGUI extends JFrame {
 		threadNumSlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				threadNumLabel.setText("number of threads: " + threadNumSlider.getValue());
+				threadNumLabel.setText("threads: " + threadNumSlider.getValue());
 				//change number of threads
 				generator.setParallel(threadNumSlider.getValue());
 			}
 		});
 		buttomPanel.add(threadNumSlider);
 		
-		threadNumLabel = new JLabel("number of threads: 1");
+		threadNumLabel = new JLabel("threads: 1");
 		buttomPanel.add(threadNumLabel);
+		
+		updateTimeLabel = new JLabel("time: 0.0");
+		buttomPanel.add(updateTimeLabel);
 		
 		JPanel customScrollPanel = new JPanel();
 		mainPanel.add(customScrollPanel, BorderLayout.CENTER);
@@ -334,8 +336,22 @@ public class MainGUI extends JFrame {
 	}
 	
 	public void enableRun(){
-		runPauseButton.setEnabled(true);
-		patternSelector.setEnabled(true);
+		EventQueue.invokeLater(new Runnable(){
+			@Override
+			public void run() {
+				runPauseButton.setEnabled(true);
+				patternSelector.setEnabled(true);
+			}
+		});
+	}
+	
+	public void showUpdateTime(final double time){
+		EventQueue.invokeLater(new Runnable(){
+			@Override
+			public void run() {
+				updateTimeLabel.setText("time: " + time);
+			}
+		});
 	}
 	
 	private class ContentPanel extends JPanel{

@@ -17,6 +17,16 @@ public class CellGrid {
 		if(patternName.equals("clear")){
 			grid = new boolean[2000][2000];
 			return;
+		}else if(patternName.equals("random")){
+			grid = new boolean[3000][3000];
+			for(int i = 0; i < 3000; i++){
+				for(int j = 0; j < 3000; j++){
+					if(Math.random() > 0.7){
+						grid[i][j] = true;
+					}
+				}
+			}
+			return;
 		}
 		
 		File pattern = new File("pattern/" + patternName);

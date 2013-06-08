@@ -3,15 +3,18 @@ package info.pishen.gameoflife;
 import java.util.logging.Logger;
 
 public class ParallelGenerator {
+	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(ParallelGenerator.class.getName());
 	
 	private boolean[][] oldGrid, newGrid;
 	private CellGrid cellGrid;
+	private MainGUI gui;
 	private volatile Updater updater;
 	private volatile int parallel = 1;
 	
-	public ParallelGenerator(CellGrid cellGrid){
+	public ParallelGenerator(CellGrid cellGrid, MainGUI gui){
 		this.cellGrid = cellGrid;
+		this.gui = gui;
 	}
 	
 	public void run(){
@@ -19,8 +22,7 @@ public class ParallelGenerator {
 		updater.start();
 	}
 	
-	public void pause(MainGUI mainGUI){
-		updater.mainGUI = mainGUI;
+	public void pause(){
 		updater.toPause = true;
 	}
 	
@@ -29,7 +31,6 @@ public class ParallelGenerator {
 	}
 	
 	private class Updater extends Thread{
-		volatile MainGUI mainGUI;
 		volatile boolean toPause = false;
 		
 		@Override
@@ -56,10 +57,11 @@ public class ParallelGenerator {
 				}
 				
 				long endTime = System.currentTimeMillis();
-				log.info("update time: " + ((endTime - startTime) / 1000.0) + " secs");
+				//log.info("update time: " + ((endTime - startTime) / 1000.0) + " secs");
+				gui.showUpdateTime((endTime - startTime) / 1000.0);
 				
 				if(toPause){
-					mainGUI.enableRun();
+					gui.enableRun();
 					break;
 				}
 				
