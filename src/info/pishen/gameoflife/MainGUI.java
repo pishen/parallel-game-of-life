@@ -107,15 +107,14 @@ public class MainGUI extends JFrame {
 				if(isRunning){
 					isRunning = false;
 					runPauseButton.setText("Run");
-					//runPauseButton.setEnabled(false);
 					//pause
 					updateThread.lagStop();
 				}else{
 					isRunning = true;
 					runPauseButton.setText("Pause");
-					//patternSelector.setEnabled(false);
 					//run
 					updateThread = new UpdateThread(cellGrid);
+					updateThread.setParallelLevel(threadNumSlider.getValue());
 					updateThread.start();
 				}
 			}
@@ -194,7 +193,9 @@ public class MainGUI extends JFrame {
 			public void stateChanged(ChangeEvent e) {
 				threadNumLabel.setText("threads: " + threadNumSlider.getValue());
 				//change number of threads
-				updateThread.setParallelLevel(threadNumSlider.getValue());
+				if(updateThread != null){
+					updateThread.setParallelLevel(threadNumSlider.getValue());
+				}
 			}
 		});
 		buttomPanel.add(threadNumSlider);
