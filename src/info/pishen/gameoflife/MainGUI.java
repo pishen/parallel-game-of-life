@@ -28,6 +28,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JSlider;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -38,6 +40,8 @@ public class MainGUI extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private static MainGUI current;
+	
 	private JPanel mainPanel, contentPanel;
 	private JButton runPauseButton;
 	private JScrollBar hScrollBar, vScrollBar;
@@ -48,13 +52,13 @@ public class MainGUI extends JFrame {
 	private boolean updateValue;
 	
 	private CellGrid cellGrid;
-	private ParallelGenerator generator;
+	private UpdateThread updateThread;
 	private JSlider threadNumSlider;
 	private JButton zoomIn;
 	private JButton zoomOut;
 	private JLabel threadNumLabel;
 	private JLabel updateTimeLabel;
-	private JComboBox<String> patternSelector;
+	private JComboBox patternSelector;
 
 	/**
 	 * Launch the application.
@@ -81,9 +85,8 @@ public class MainGUI extends JFrame {
 	 * @throws NumberFormatException 
 	 */
 	public MainGUI() throws URISyntaxException, NumberFormatException, IOException {
+		current = this;
 		cellGrid = new CellGrid("clear");
-		cellGrid.setMainGUI(this);
-		generator = new ParallelGenerator(cellGrid, this);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 850, 550);
@@ -104,15 +107,16 @@ public class MainGUI extends JFrame {
 				if(isRunning){
 					isRunning = false;
 					runPauseButton.setText("Run");
-					runPauseButton.setEnabled(false);
+					//runPauseButton.setEnabled(false);
 					//pause
-					generator.pause();
+					updateThread.lagStop();
 				}else{
 					isRunning = true;
 					runPauseButton.setText("Pause");
-					patternSelector.setEnabled(false);
+					//patternSelector.setEnabled(false);
 					//run
-					generator.run();
+					updateThread = new UpdateThread(cellGrid);
+					updateThread.start();
 				}
 			}
 		});
@@ -154,16 +158,20 @@ public class MainGUI extends JFrame {
 		for(int i = 0; i < customPatterns.length; i++){
 			allPatterns[i + 2] = customPatterns[i];
 		}
-		patternSelector = new JComboBox<String>(allPatterns);
+		patternSelector = new JComboBox(allPatterns);
 		patternSelector.setSelectedIndex(0);
 		patternSelector.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox<String> cb = (JComboBox<String>)e.getSource();
+				if(isRunning){
+					isRunning = false;
+					runPauseButton.setText("Run");
+					updateThread.lagStop();
+				}
+				
+				JComboBox cb = (JComboBox)e.getSource();
 				try {
 					cellGrid = new CellGrid((String)cb.getSelectedItem());
-					cellGrid.setMainGUI(MainGUI.this);
-					generator = new ParallelGenerator(cellGrid, MainGUI.this);
 					hScrollBar.setValue(0);
 					vScrollBar.setValue(0);
 					hScrollBar.setMaximum(cellGrid.getColNum() * cellSize);
@@ -185,7 +193,7 @@ public class MainGUI extends JFrame {
 			public void stateChanged(ChangeEvent e) {
 				threadNumLabel.setText("threads: " + threadNumSlider.getValue());
 				//change number of threads
-				generator.setParallel(threadNumSlider.getValue());
+				updateThread.setParallelLevel(threadNumSlider.getValue());
 			}
 		});
 		buttomPanel.add(threadNumSlider);
@@ -326,6 +334,10 @@ public class MainGUI extends JFrame {
 		contentPanel.repaint();
 	}
 	
+	public static MainGUI getCurrentGUI(){
+		return MainGUI.current;
+	}
+	
 	public void repaintGrid(){
 		EventQueue.invokeLater(new Runnable(){
 			@Override
@@ -335,7 +347,7 @@ public class MainGUI extends JFrame {
 		});
 	}
 	
-	public void enableRun(){
+	/*public void enableRun(){
 		EventQueue.invokeLater(new Runnable(){
 			@Override
 			public void run() {
@@ -343,7 +355,7 @@ public class MainGUI extends JFrame {
 				patternSelector.setEnabled(true);
 			}
 		});
-	}
+	}*/
 	
 	public void showUpdateTime(final double time){
 		EventQueue.invokeLater(new Runnable(){

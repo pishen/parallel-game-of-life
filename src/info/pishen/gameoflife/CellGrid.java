@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 public class CellGrid {
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(CellGrid.class.getName());
-	private MainGUI gui;
 	private boolean[][] grid;
 	
 	public CellGrid(String patternName) throws NumberFormatException, IOException, URISyntaxException{
@@ -18,10 +17,10 @@ public class CellGrid {
 			grid = new boolean[2000][2000];
 			return;
 		}else if(patternName.equals("random")){
-			grid = new boolean[3000][3000];
-			for(int i = 0; i < 3000; i++){
-				for(int j = 0; j < 3000; j++){
-					if(Math.random() > 0.7){
+			grid = new boolean[2000][2000];
+			for(int i = 0; i < 2000; i++){
+				for(int j = 0; j < 2000; j++){
+					if(Math.random() > 0.6){
 						grid[i][j] = true;
 					}
 				}
@@ -85,10 +84,6 @@ public class CellGrid {
 		}
 	}
 	
-	public void setMainGUI(MainGUI gui){
-		this.gui = gui;
-	}
-	
 	public int getRowNum(){
 		return grid.length;
 	}
@@ -97,24 +92,23 @@ public class CellGrid {
 		return grid[0].length;
 	}
 	
-	public boolean[][] getDuplicateGrid(){
+	/*public boolean[][] getDuplicateGrid(){
 		boolean[][] duplicateGrid = new boolean[grid.length][grid[0].length];
 		for(int i = 0; i < grid.length; i++){
 			System.arraycopy(grid[i], 0, duplicateGrid[i], 0, grid[i].length);
 		}
 		return duplicateGrid;
+	}*/
+	
+	public boolean[][] getGrid(){
+		return grid;
 	}
 	
 	public synchronized void updateGrid(int i, int j, boolean value){
 		grid[i][j] = value;
 	}
 	
-	public void setNewGrid(boolean[][] newGrid){
-		replaceGrid(newGrid);
-		gui.repaintGrid();
-	}
-	
-	private synchronized void replaceGrid(boolean[][] newGrid){
+	public synchronized void replaceGrid(boolean[][] newGrid){
 		grid = newGrid;
 	}
 	
