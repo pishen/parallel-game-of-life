@@ -10,13 +10,21 @@ public class UpdateThread extends Thread{
 	private CellGrid cellGrid;
 	private int parallelLevel = 1;
 	private boolean toStop = false;
+	private int evalIter = 0;
 	
 	public UpdateThread(CellGrid cellGrid){
 		this.cellGrid = cellGrid;
 	}
 	
+	public UpdateThread(CellGrid cellGrid, int evalIter){
+		this.cellGrid = cellGrid;
+		this.evalIter = evalIter;
+	}
+	
 	@Override
 	public void run(){
+		int count = 0;
+		double accuTime = 0.0;
 		while(toStop == false){
 			oldGrid = cellGrid.getGrid();
 			newGrid = new boolean[oldGrid.length][oldGrid[0].length];
@@ -42,7 +50,15 @@ public class UpdateThread extends Thread{
 			long endTime = System.currentTimeMillis();
 			//\\//\\//\\\//\\//\\//\\//\\//\\\//\\//\\//
 			
-			//log.info("update time: " + ((endTime - startTime) / 1000.0) + " secs");
+			if(count < evalIter){
+				count++;
+				double updateTime = (endTime - startTime) / 1000.0;
+				log.info("Iter: " + count + " Time: " + updateTime);
+				accuTime += updateTime;
+				if(count == evalIter){
+					log.info("Avg: " + (accuTime / (double)evalIter));
+				}
+			}
 			
 			synchronized(this){
 				if(toStop == false){

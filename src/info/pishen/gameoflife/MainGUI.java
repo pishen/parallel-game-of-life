@@ -152,11 +152,12 @@ public class MainGUI extends JFrame {
 		
 		File patternDir = new File("pattern");
 		String[] customPatterns = patternDir.list();
-		String[] allPatterns = new String[patternDir.list().length + 2];
+		String[] allPatterns = new String[patternDir.list().length + 3];
 		allPatterns[0] = "clear";
 		allPatterns[1] = "random";
+		allPatterns[2] = "pseudo-random";
 		for(int i = 0; i < customPatterns.length; i++){
-			allPatterns[i + 2] = customPatterns[i];
+			allPatterns[i + 3] = customPatterns[i];
 		}
 		patternSelector = new JComboBox(allPatterns);
 		patternSelector.setSelectedIndex(0);

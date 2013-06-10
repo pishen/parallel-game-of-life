@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Random;
 import java.util.logging.Logger;
 
 public class CellGrid {
@@ -21,6 +22,17 @@ public class CellGrid {
 			for(int i = 0; i < 2000; i++){
 				for(int j = 0; j < 2000; j++){
 					if(Math.random() > 0.6){
+						grid[i][j] = true;
+					}
+				}
+			}
+			return;
+		}else if(patternName.equals("pseudo-random")){
+			Random random = new Random(2013);
+			grid = new boolean[2000][2000];
+			for(int i = 0; i < 2000; i++){
+				for(int j = 0; j < 2000; j++){
+					if(random.nextDouble() > 0.6){
 						grid[i][j] = true;
 					}
 				}
