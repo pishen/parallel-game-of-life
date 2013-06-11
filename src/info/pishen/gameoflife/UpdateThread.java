@@ -33,9 +33,12 @@ public class UpdateThread extends Thread{
 			long startTime = System.currentTimeMillis();
 			
 			SubUpdateThread[] subUpdaters = new SubUpdateThread[parallelLevel];
-			int blockSize = oldGrid.length / subUpdaters.length;
-			for(int i = 0; i < subUpdaters.length; i++){
-				subUpdaters[i] = new SubUpdateThread(i * blockSize, Math.min((i+1) * blockSize, oldGrid.length));
+			
+			int blockSize = oldGrid.length / parallelLevel;
+			
+			for(int i = 0; i < parallelLevel; i++){
+				int iEnd = (i == parallelLevel - 1) ? oldGrid.length : (i+1) * blockSize;
+				subUpdaters[i] = new SubUpdateThread(i * blockSize, iEnd);
 				subUpdaters[i].start();
 			}
 			
