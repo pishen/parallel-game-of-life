@@ -28,19 +28,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JSlider;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class MainGUI extends JFrame {
-	private static Logger log = Logger.getLogger(MainGUI.class.getName());
+import com.lexicalscope.jewel.cli.CliFactory;
+
+public class MainFrame extends JFrame {
+	private static Logger log = Logger.getLogger(MainFrame.class.getName());
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private static MainGUI current;
+	static MainFrame instance;
+	private static CLIOptions options;
 	
 	private JPanel mainPanel, contentPanel;
 	private JButton runPauseButton;
@@ -64,13 +65,17 @@ public class MainGUI extends JFrame {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
+		options = CliFactory.parseArguments(CLIOptions.class, args);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					log.info("starting...");
 					log.info("processors: " + Runtime.getRuntime().availableProcessors());
-					MainGUI frame = new MainGUI();
-					frame.setVisible(true);
+					MainFrame mainFrame = new MainFrame();
+					mainFrame.setVisible(true);
+					if(options.isEval()){
+						mainFrame.evalNext(1);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -84,8 +89,8 @@ public class MainGUI extends JFrame {
 	 * @throws IOException 
 	 * @throws NumberFormatException 
 	 */
-	public MainGUI() throws URISyntaxException, NumberFormatException, IOException {
-		current = this;
+	public MainFrame() throws URISyntaxException, NumberFormatException, IOException {
+		instance = this;
 		cellGrid = new CellGrid("clear");
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -100,22 +105,14 @@ public class MainGUI extends JFrame {
 		flowLayout.setAlignment(FlowLayout.LEFT);
 		mainPanel.add(buttomPanel, BorderLayout.SOUTH);
 		
-		runPauseButton = new JButton("Run");
+		runPauseButton = new JButton("Start");
 		runPauseButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(isRunning){
-					isRunning = false;
-					runPauseButton.setText("Run");
-					//pause
-					updateThread.lagStop();
+					stopUpdate();
 				}else{
-					isRunning = true;
-					runPauseButton.setText("Pause");
-					//run
-					updateThread = new UpdateThread(cellGrid);
-					updateThread.setParallelLevel(threadNumSlider.getValue());
-					updateThread.start();
+					startUpdate();
 				}
 			}
 		});
@@ -164,22 +161,11 @@ public class MainGUI extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(isRunning){
-					isRunning = false;
-					runPauseButton.setText("Run");
-					updateThread.lagStop();
+					stopUpdate();
 				}
 				
 				JComboBox cb = (JComboBox)e.getSource();
-				try {
-					cellGrid = new CellGrid((String)cb.getSelectedItem());
-					hScrollBar.setValue(0);
-					vScrollBar.setValue(0);
-					hScrollBar.setMaximum(cellGrid.getColNum() * cellSize);
-					vScrollBar.setMaximum(cellGrid.getRowNum() * cellSize);
-					contentPanel.repaint();
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
+				createNewCellGrid((String)cb.getSelectedItem());
 			}
 		});
 		buttomPanel.add(patternSelector);
@@ -336,8 +322,50 @@ public class MainGUI extends JFrame {
 		contentPanel.repaint();
 	}
 	
-	public static MainGUI getCurrentGUI(){
-		return MainGUI.current;
+	private void createNewCellGrid(String patternName){
+		try {
+			cellGrid = new CellGrid(patternName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		hScrollBar.setValue(0);
+		vScrollBar.setValue(0);
+		hScrollBar.setMaximum(cellGrid.getColNum() * cellSize);
+		vScrollBar.setMaximum(cellGrid.getRowNum() * cellSize);
+		contentPanel.repaint();
+	}
+	
+	private void startUpdate(){
+		startUpdate(0, threadNumSlider.getValue());
+	}
+	
+	private void startUpdate(int evalIter, int parallelLevel){
+		isRunning = true;
+		runPauseButton.setText("Pause");
+		updateThread = new UpdateThread(cellGrid, evalIter);
+		updateThread.setParallelLevel(parallelLevel);
+		updateThread.start();
+	}
+	
+	private void stopUpdate(){
+		isRunning = false;
+		runPauseButton.setText("Start");
+		updateThread.lagStop();
+	}
+	
+	public void evalNext(final int parallelLevel){
+		EventQueue.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if(parallelLevel > 1){
+					stopUpdate();
+				}
+				if(parallelLevel <= Runtime.getRuntime().availableProcessors()){
+					createNewCellGrid("pseudo-random");
+					startUpdate(options.getEval(), parallelLevel);
+				}
+			}
+		});
 	}
 	
 	public void repaintGrid(){
@@ -370,9 +398,6 @@ public class MainGUI extends JFrame {
 	
 	private class ContentPanel extends JPanel{
 
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 1L;
 
 		@Override

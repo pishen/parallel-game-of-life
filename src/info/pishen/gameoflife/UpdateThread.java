@@ -3,7 +3,7 @@ package info.pishen.gameoflife;
 import java.util.logging.Logger;
 
 public class UpdateThread extends Thread{
-	@SuppressWarnings("unused")
+	//@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(UpdateThread.class.getName());
 	
 	private boolean[][] oldGrid, newGrid;
@@ -56,7 +56,8 @@ public class UpdateThread extends Thread{
 				log.info("Iter: " + count + " Time: " + updateTime);
 				accuTime += updateTime;
 				if(count == evalIter){
-					log.info("Avg: " + (accuTime / (double)evalIter));
+					log.info("Parallel: " + parallelLevel + " Avg: " + (accuTime / (double)evalIter));
+					MainFrame.instance.evalNext(parallelLevel + 1);
 				}
 			}
 			
@@ -66,8 +67,8 @@ public class UpdateThread extends Thread{
 				}
 			}
 			
-			MainGUI.getCurrentGUI().showUpdateTime((endTime - startTime) / 1000.0);
-			MainGUI.getCurrentGUI().repaintGrid();
+			MainFrame.instance.showUpdateTime((endTime - startTime) / 1000.0);
+			MainFrame.instance.repaintGrid();
 		}
 	}
 	

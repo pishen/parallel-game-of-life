@@ -29,9 +29,9 @@ public class CellGrid {
 			return;
 		}else if(patternName.equals("pseudo-random")){
 			Random random = new Random(2013);
-			grid = new boolean[2000][2000];
-			for(int i = 0; i < 2000; i++){
-				for(int j = 0; j < 2000; j++){
+			grid = new boolean[3000][3000];
+			for(int i = 0; i < 3000; i++){
+				for(int j = 0; j < 3000; j++){
 					if(random.nextDouble() > 0.6){
 						grid[i][j] = true;
 					}
