@@ -19,6 +19,8 @@ import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
@@ -63,9 +65,13 @@ public class MainFrame extends JFrame {
 
 	/**
 	 * Launch the application.
+	 * @throws IOException 
+	 * @throws SecurityException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SecurityException, IOException {
 		options = CliFactory.parseArguments(CLIOptions.class, args);
+		Handler fh = new FileHandler("eval.log");
+		Logger.getLogger("").addHandler(fh);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
