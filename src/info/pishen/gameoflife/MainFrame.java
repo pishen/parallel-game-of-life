@@ -57,10 +57,10 @@ public class MainFrame extends JFrame {
 	
 	private CellGrid cellGrid;
 	private UpdateThread updateThread;
-	private JSlider threadNumSlider;
+	//private JSlider threadNumSlider;
 	private JButton zoomIn;
 	private JButton zoomOut;
-	private JLabel threadNumLabel;
+	//private JLabel threadNumLabel;
 	private JLabel updateTimeLabel;
 	private JComboBox patternSelector;
 
@@ -177,7 +177,7 @@ public class MainFrame extends JFrame {
 		});
 		buttomPanel.add(patternSelector);
 		
-		threadNumSlider = new JSlider();
+		/*threadNumSlider = new JSlider();
 		threadNumSlider.setMinimum(1);
 		threadNumSlider.setMaximum(Runtime.getRuntime().availableProcessors());
 		threadNumSlider.setValue(1);
@@ -194,7 +194,7 @@ public class MainFrame extends JFrame {
 		buttomPanel.add(threadNumSlider);
 		
 		threadNumLabel = new JLabel("threads: 1");
-		buttomPanel.add(threadNumLabel);
+		buttomPanel.add(threadNumLabel);*/
 		
 		updateTimeLabel = new JLabel("time: 0.0");
 		buttomPanel.add(updateTimeLabel);
@@ -343,16 +343,17 @@ public class MainFrame extends JFrame {
 	}
 	
 	private void startUpdate(){
-		int blockSize = options.isBlockSize() ? options.getBlockSize() : 0;
-		startUpdate(0, threadNumSlider.getValue(), blockSize);
+		startUpdate(0, options.isBlockSize() ? options.getBlockSize() : 0);
 	}
 	
-	private void startUpdate(int evalIter, int parallelLevel, int blockSize){
+	private void startUpdate(int evalIter, int blockSize){
 		isRunning = true;
 		runPauseButton.setText("Pause");
 		updateThread = new UpdateThread(cellGrid, evalIter);
-		updateThread.setParallelLevel(parallelLevel);
-		updateThread.setBlockSize(blockSize);
+		//updateThread.setParallelLevel(parallelLevel);
+		if(blockSize != 0){
+			updateThread.setBlockSize(blockSize);
+		}
 		updateThread.start();
 	}
 	
@@ -362,18 +363,17 @@ public class MainFrame extends JFrame {
 		updateThread.lagStop();
 	}
 	
-	public void evalNext(final int parallelLevel){
+	public void evalNext(final int blockSize){
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				if(parallelLevel > 1){
+				if(blockSize > 1){
 					stopUpdate();
 				}
-				if(parallelLevel <= Runtime.getRuntime().availableProcessors()){
+				if(blockSize <= cellGrid.getRowNum()){
 					int size = options.isGridSize() ? options.getGridSize() : 2000;
 					createNewCellGrid("pseudo-" + size);
-					int blockSize = options.isBlockSize() ? options.getBlockSize() : 0;
-					startUpdate(options.getEval(), parallelLevel, blockSize);
+					startUpdate(options.getEval(), blockSize);
 				}
 			}
 		});

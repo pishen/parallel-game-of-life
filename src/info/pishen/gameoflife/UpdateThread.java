@@ -1,9 +1,7 @@
 package info.pishen.gameoflife;
 
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 import java.util.logging.Logger;
 
 public class UpdateThread extends Thread{
@@ -12,25 +10,23 @@ public class UpdateThread extends Thread{
 	
 	private boolean[][] oldGrid, newGrid;
 	private CellGrid cellGrid;
-	private int parallelLevel = 1;
+	//private int parallelLevel = 1;
 	private int blockSize = 0;
-	private boolean isDefaultBlockSize;
 	private boolean toStop = false;
 	private int evalIter = 0;
-	
-	public UpdateThread(CellGrid cellGrid){
-		this.cellGrid = cellGrid;
-	}
 	
 	public UpdateThread(CellGrid cellGrid, int evalIter){
 		this.cellGrid = cellGrid;
 		this.evalIter = evalIter;
+		blockSize = cellGrid.getRowNum() / Runtime.getRuntime().availableProcessors();
 	}
 	
 	@Override
 	public void run(){
 		int count = 0;
 		double accuTime = 0.0;
+		
+		ForkJoinPool pool = new ForkJoinPool();
 		
 		while(toStop == false){
 			oldGrid = cellGrid.getGrid();
@@ -39,27 +35,8 @@ public class UpdateThread extends Thread{
 			//parallel update//\\//\\//\\\//\\//\\//\\//
 			long startTime = System.currentTimeMillis();
 			
-			ExecutorService es = Executors.newFixedThreadPool(parallelLevel);
-			CompletionService<Integer> cs = new ExecutorCompletionService<Integer>(es);
-			
-			if(isDefaultBlockSize){
-				blockSize = oldGrid.length / parallelLevel;
-			}
-			int numberOfBlocks = oldGrid.length / blockSize;
-			
-			for(int i = 0; i < numberOfBlocks; i++){
-				int iEnd = (i == numberOfBlocks - 1) ? oldGrid.length : (i+1) * blockSize;
-				cs.submit(new SubUpdateTask(i * blockSize, iEnd),  i);
-			}
-			
-			for(int i = 0; i < numberOfBlocks; i++){
-				try {
-					cs.take();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			es.shutdown();
+			SubUpdateTask rootTask = new SubUpdateTask(0, cellGrid.getRowNum());
+			pool.invoke(rootTask);
 			
 			long endTime = System.currentTimeMillis();
 			//\\//\\//\\\//\\//\\//\\//\\//\\\//\\//\\//
@@ -70,8 +47,8 @@ public class UpdateThread extends Thread{
 				//log.info("Iter: " + count + " Time: " + updateTime);
 				accuTime += updateTime;
 				if(count == evalIter){
-					log.info("Parallel: " + parallelLevel + " BlockSize: " + blockSize + " Avg: " + (accuTime / (double)evalIter));
-					MainFrame.instance.evalNext(parallelLevel + 1);
+					log.info("BlockSize: " + blockSize + " Avg: " + (accuTime / (double)evalIter));
+					MainFrame.instance.evalNext(blockSize * 2);
 				}
 			}
 			
@@ -84,25 +61,20 @@ public class UpdateThread extends Thread{
 			MainFrame.instance.showUpdateTime((endTime - startTime) / 1000.0);
 			MainFrame.instance.repaintGrid();
 		}
+		
+		pool.shutdown();
 	}
 	
 	public synchronized void lagStop(){
 		toStop = true;
 	}
 	
-	public void setParallelLevel(int value){
-		parallelLevel = value;
-	}
-	
 	public void setBlockSize(int value){
-		if(value == 0){
-			isDefaultBlockSize = true;
-		}else{
-			blockSize = value;
-		}
+		blockSize = value;
 	}
 	
-	private class SubUpdateTask implements Runnable{
+	private class SubUpdateTask extends RecursiveAction{
+		private static final long serialVersionUID = 1L;
 		private int iStart, iEnd;
 		
 		public SubUpdateTask(int iStart, int iEnd){
@@ -110,8 +82,7 @@ public class UpdateThread extends Thread{
 			this.iEnd = iEnd;
 		}
 		
-		@Override
-		public void run() {
+		private void computeDirectly() {
 			//iEnd is excluded
 			for(int i = iStart; i < iEnd; i++){
 				for(int j = 0; j < oldGrid[0].length; j++){
@@ -135,6 +106,18 @@ public class UpdateThread extends Thread{
 					}
 				}
 			}
+		}
+
+		@Override
+		protected void compute() {
+			if(iEnd - iStart <= blockSize){
+				computeDirectly();
+				return;
+			}
+			
+			int iMiddle = (iStart + iEnd) / 2;
+			
+			invokeAll(new SubUpdateTask(iStart, iMiddle), new SubUpdateTask(iMiddle, iEnd));
 		}
 	}
 }
