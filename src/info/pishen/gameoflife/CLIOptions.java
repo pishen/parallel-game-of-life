@@ -9,7 +9,12 @@ public interface CLIOptions {
 	boolean isEval();
 	
 	@Option
-	int getSize();
+	int getGridSize();
 	
-	boolean isSize();
+	boolean isGridSize();
+	
+	@Option
+	int getBlockSize();
+	
+	boolean isBlockSize();
 }

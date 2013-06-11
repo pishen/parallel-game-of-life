@@ -1,5 +1,9 @@
 package info.pishen.gameoflife;
 
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class UpdateThread extends Thread{
@@ -9,6 +13,8 @@ public class UpdateThread extends Thread{
 	private boolean[][] oldGrid, newGrid;
 	private CellGrid cellGrid;
 	private int parallelLevel = 1;
+	private int blockSize = 0;
+	private boolean isDefaultBlockSize;
 	private boolean toStop = false;
 	private int evalIter = 0;
 	
@@ -25,6 +31,7 @@ public class UpdateThread extends Thread{
 	public void run(){
 		int count = 0;
 		double accuTime = 0.0;
+		
 		while(toStop == false){
 			oldGrid = cellGrid.getGrid();
 			newGrid = new boolean[oldGrid.length][oldGrid[0].length];
@@ -32,20 +39,27 @@ public class UpdateThread extends Thread{
 			//parallel update//\\//\\//\\\//\\//\\//\\//
 			long startTime = System.currentTimeMillis();
 			
-			SubUpdateThread[] subUpdaters = new SubUpdateThread[parallelLevel];
-			int blockSize = oldGrid.length / subUpdaters.length;
-			for(int i = 0; i < subUpdaters.length; i++){
-				subUpdaters[i] = new SubUpdateThread(i * blockSize, Math.min((i+1) * blockSize, oldGrid.length));
-				subUpdaters[i].start();
+			ExecutorService es = Executors.newFixedThreadPool(parallelLevel);
+			CompletionService<Integer> cs = new ExecutorCompletionService<Integer>(es);
+			
+			if(isDefaultBlockSize){
+				blockSize = oldGrid.length / parallelLevel;
+			}
+			int numberOfBlocks = oldGrid.length / blockSize;
+			
+			for(int i = 0; i < numberOfBlocks; i++){
+				int iEnd = (i == numberOfBlocks - 1) ? oldGrid.length : (i+1) * blockSize;
+				cs.submit(new SubUpdateTask(i * blockSize, iEnd),  i);
 			}
 			
-			for(int i = 0; i < subUpdaters.length; i++){
+			for(int i = 0; i < numberOfBlocks; i++){
 				try {
-					subUpdaters[i].join();
+					cs.take();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
+			es.shutdown();
 			
 			long endTime = System.currentTimeMillis();
 			//\\//\\//\\\//\\//\\//\\//\\//\\\//\\//\\//
@@ -80,10 +94,18 @@ public class UpdateThread extends Thread{
 		parallelLevel = value;
 	}
 	
-	private class SubUpdateThread extends Thread{
+	public void setBlockSize(int value){
+		if(value == 0){
+			isDefaultBlockSize = true;
+		}else{
+			blockSize = value;
+		}
+	}
+	
+	private class SubUpdateTask implements Runnable{
 		private int iStart, iEnd;
 		
-		public SubUpdateThread(int iStart, int iEnd){
+		public SubUpdateTask(int iStart, int iEnd){
 			this.iStart = iStart;
 			this.iEnd = iEnd;
 		}

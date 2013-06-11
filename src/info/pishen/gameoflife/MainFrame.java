@@ -343,14 +343,16 @@ public class MainFrame extends JFrame {
 	}
 	
 	private void startUpdate(){
-		startUpdate(0, threadNumSlider.getValue());
+		int blockSize = options.isBlockSize() ? options.getBlockSize() : 0;
+		startUpdate(0, threadNumSlider.getValue(), blockSize);
 	}
 	
-	private void startUpdate(int evalIter, int parallelLevel){
+	private void startUpdate(int evalIter, int parallelLevel, int blockSize){
 		isRunning = true;
 		runPauseButton.setText("Pause");
 		updateThread = new UpdateThread(cellGrid, evalIter);
 		updateThread.setParallelLevel(parallelLevel);
+		updateThread.setBlockSize(blockSize);
 		updateThread.start();
 	}
 	
@@ -368,9 +370,10 @@ public class MainFrame extends JFrame {
 					stopUpdate();
 				}
 				if(parallelLevel <= Runtime.getRuntime().availableProcessors()){
-					int size = options.isSize() ? options.getSize() : 2000;
+					int size = options.isGridSize() ? options.getGridSize() : 2000;
 					createNewCellGrid("pseudo-" + size);
-					startUpdate(options.getEval(), parallelLevel);
+					int blockSize = options.isBlockSize() ? options.getBlockSize() : 0;
+					startUpdate(options.getEval(), parallelLevel, blockSize);
 				}
 			}
 		});
