@@ -67,10 +67,10 @@ public class UpdateThread extends Thread{
 			if(count < evalIter){
 				count++;
 				double updateTime = (endTime - startTime) / 1000.0;
-				log.info("Iter: " + count + " Time: " + updateTime);
+				//log.info("Iter: " + count + " Time: " + updateTime);
 				accuTime += updateTime;
 				if(count == evalIter){
-					log.info("Parallel: " + parallelLevel + " Avg: " + (accuTime / (double)evalIter));
+					log.info("Parallel: " + parallelLevel + " BlockSize: " + blockSize + " Avg: " + (accuTime / (double)evalIter));
 					MainFrame.instance.evalNext(parallelLevel + 1);
 				}
 			}
