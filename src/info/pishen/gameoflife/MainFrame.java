@@ -103,6 +103,8 @@ public class MainFrame extends JFrame {
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 850, 550);
+		setTitle("Parallel Conway's Game of Life");
+		setIconImage(getToolkit().getImage(getClass().getResource("/icon.png")));
 		mainPanel = new JPanel();
 		mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		mainPanel.setLayout(new BorderLayout(0, 0));
