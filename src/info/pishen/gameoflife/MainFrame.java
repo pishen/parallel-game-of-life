@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -71,6 +72,7 @@ public class MainFrame extends JFrame {
 	public static void main(String[] args) throws SecurityException, IOException {
 		options = CliFactory.parseArguments(CLIOptions.class, args);
 		Handler fh = new FileHandler("eval.log");
+		fh.setFormatter(new SimpleFormatter());
 		Logger.getLogger("").addHandler(fh);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -154,12 +156,11 @@ public class MainFrame extends JFrame {
 		
 		File patternDir = new File("pattern");
 		String[] customPatterns = patternDir.list();
-		String[] allPatterns = new String[patternDir.list().length + 3];
+		String[] allPatterns = new String[patternDir.list().length + 2];
 		allPatterns[0] = "clear";
 		allPatterns[1] = "random";
-		allPatterns[2] = "pseudo-random";
 		for(int i = 0; i < customPatterns.length; i++){
-			allPatterns[i + 3] = customPatterns[i];
+			allPatterns[i + 2] = customPatterns[i];
 		}
 		patternSelector = new JComboBox(allPatterns);
 		patternSelector.setSelectedIndex(0);
@@ -367,7 +368,8 @@ public class MainFrame extends JFrame {
 					stopUpdate();
 				}
 				if(parallelLevel <= Runtime.getRuntime().availableProcessors()){
-					createNewCellGrid("pseudo-random");
+					int size = options.isSize() ? options.getSize() : 2000;
+					createNewCellGrid("pseudo-" + size);
 					startUpdate(options.getEval(), parallelLevel);
 				}
 			}

@@ -7,4 +7,9 @@ public interface CLIOptions {
 	int getEval();
 	
 	boolean isEval();
+	
+	@Option
+	int getSize();
+	
+	boolean isSize();
 }

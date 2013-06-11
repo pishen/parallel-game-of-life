@@ -27,11 +27,12 @@ public class CellGrid {
 				}
 			}
 			return;
-		}else if(patternName.equals("pseudo-random")){
+		}else if(patternName.startsWith("pseudo-")){
 			Random random = new Random(2013);
-			grid = new boolean[3000][3000];
-			for(int i = 0; i < 3000; i++){
-				for(int j = 0; j < 3000; j++){
+			int size = Integer.parseInt(patternName.substring(7));
+			grid = new boolean[size][size];
+			for(int i = 0; i < size; i++){
+				for(int j = 0; j < size; j++){
 					if(random.nextDouble() > 0.6){
 						grid[i][j] = true;
 					}
