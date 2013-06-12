@@ -31,7 +31,7 @@
 #C  orthogonally to the puffer and 45 degrees from the rake.
 #C
 #C Lucas Brown, 24 January 2008, 4:21 PM PST
-x = 1640, y = 619, rule = B3/S23
+x = 1640, y = 619, rule = B3/S23, w = 4000, h = 1000
 1194b2o$1192bo4bo$1198bo129bo$1192bo5bo129b4o$1193b6o27bo89b2o5bo6b2o$
 1224bo3bo83b4ob2o4b3o7bo$1229bo82b6o7b2ob6o$1224bo4bo5bo2bo74b4o4b4o9b
 obo$1225b5o9bo80bo3bo4bob7o$1235bo3bo82b3o4bo7b2o$1236b4o77b2obobo3b2o

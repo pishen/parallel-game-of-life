@@ -44,14 +44,14 @@ public class MainFrame extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	static MainFrame instance;
-	private static CLIOptions options;
+	static CLIOptions options;
 	
 	private JPanel mainPanel, contentPanel;
 	private JButton runPauseButton;
 	private JScrollBar hScrollBar, vScrollBar;
 	//private int contentWidth, contentHeight;
 	private int cellSize = 10;
-	private final int MIN_CELL_SIZE = 2, MAX_CELL_SIZE = 20;
+	private final int MIN_CELL_SIZE = 1, MAX_CELL_SIZE = 20;
 	private boolean isRunning = false;
 	private boolean updateValue;
 	
@@ -326,8 +326,29 @@ public class MainFrame extends JFrame {
 	}
 	
 	private void updateScale(){
+		int hOldMax = hScrollBar.getMaximum();
+		int vOldMax = vScrollBar.getMaximum();
 		hScrollBar.setMaximum(cellGrid.getColNum() * cellSize);
 		vScrollBar.setMaximum(cellGrid.getRowNum() * cellSize);
+		
+		int hHalfVisible = hScrollBar.getVisibleAmount() / 2;
+		int hNewValue = (int)(((hScrollBar.getValue() + hHalfVisible) / (double)hOldMax) * hScrollBar.getMaximum() - hHalfVisible);
+		if(hNewValue < 0){
+			hNewValue = 0;
+		}else if(hNewValue > hScrollBar.getMaximum() - hScrollBar.getVisibleAmount()){
+			hNewValue = hScrollBar.getMaximum() - hScrollBar.getVisibleAmount();
+		}
+		hScrollBar.setValue(hNewValue);
+		
+		int vHalfVisible = vScrollBar.getVisibleAmount() / 2;
+		int vNewValue = (int)(((vScrollBar.getValue() + vHalfVisible) / (double)vOldMax) * vScrollBar.getMaximum() - vHalfVisible);
+		if(vNewValue < 0){
+			vNewValue = 0;
+		}else if(vNewValue > vScrollBar.getMaximum() - vScrollBar.getVisibleAmount()){
+			vNewValue = vScrollBar.getMaximum() - vScrollBar.getVisibleAmount();
+		}
+		vScrollBar.setValue(vNewValue);
+		
 		contentPanel.repaint();
 	}
 	
@@ -372,8 +393,7 @@ public class MainFrame extends JFrame {
 					stopUpdate();
 				}
 				if(parallelLevel <= Runtime.getRuntime().availableProcessors()){
-					int size = options.isGridSize() ? options.getGridSize() : 2000;
-					createNewCellGrid("pseudo-" + size);
+					createNewCellGrid("pseudo-random");
 					int blockSize = options.isBlockSize() ? options.getBlockSize() : 0;
 					startUpdate(options.getEval(), parallelLevel, blockSize);
 				}
@@ -389,16 +409,6 @@ public class MainFrame extends JFrame {
 			}
 		});
 	}
-	
-	/*public void enableRun(){
-		EventQueue.invokeLater(new Runnable(){
-			@Override
-			public void run() {
-				runPauseButton.setEnabled(true);
-				patternSelector.setEnabled(true);
-			}
-		});
-	}*/
 	
 	public void showUpdateTime(final double time){
 		EventQueue.invokeLater(new Runnable(){
@@ -426,7 +436,9 @@ public class MainFrame extends JFrame {
 			boolean[][] partialGrid = cellGrid.getPartialGrid(iTop, jLeft, iBottom, jRight);
 			for(int x = xLeft, j = 0; j < partialGrid[0].length; x += cellSize, j++){
 				for(int y = yTop, i = 0; i < partialGrid.length; y += cellSize, i++){
-					g.drawRect(x, y, cellSize, cellSize);
+					if(cellSize > 3){
+						g.drawRect(x, y, cellSize, cellSize);
+					}
 					if(partialGrid[i][j] == true){
 						g.fillRect(x, y, cellSize, cellSize);
 					}

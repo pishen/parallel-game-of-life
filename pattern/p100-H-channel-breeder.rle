@@ -2,7 +2,7 @@
 #C [See also p100-H-track-puffer.rle in the Puffers folder, which
 #C could easily be made into a breeder by adding a Herschel factory
 #C of any desired period to the stationary end of the Herschel track.]
-x = 647, y = 262, rule = B3/S23
+x = 647, y = 262, rule = B3/S23, w = 3000, h = 800, i = 200, j = 5
 183b6o4b4o$182bo5bo3b6o$188bo3b4oboo$182bo4bo8boo$169b5o10boo$157bo10b
 o4bo$155bo3bo13bo33boo$160bo7bo3bo30b4oboo6boo$133b5o17bo4bo9bo32b6o5b
 ooboo$132bo4bo18b5o43b4o6b4o$137bo47boo16bo11boo$132bo3bo48boo9bo6bo$

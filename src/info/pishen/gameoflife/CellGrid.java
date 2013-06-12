@@ -18,18 +18,19 @@ public class CellGrid {
 			grid = new boolean[2000][2000];
 			return;
 		}else if(patternName.equals("random")){
-			grid = new boolean[2000][2000];
-			for(int i = 0; i < 2000; i++){
-				for(int j = 0; j < 2000; j++){
+			int size = MainFrame.options.isGridSize() ? MainFrame.options.getGridSize() : 2000;
+			grid = new boolean[size][size];
+			for(int i = 0; i < size; i++){
+				for(int j = 0; j < size; j++){
 					if(Math.random() > 0.6){
 						grid[i][j] = true;
 					}
 				}
 			}
 			return;
-		}else if(patternName.startsWith("pseudo-")){
+		}else if(patternName.startsWith("pseudo-random")){
 			Random random = new Random(2013);
-			int size = Integer.parseInt(patternName.substring(7));
+			int size = MainFrame.options.isGridSize() ? MainFrame.options.getGridSize() : 2000;
 			grid = new boolean[size][size];
 			for(int i = 0; i < size; i++){
 				for(int j = 0; j < size; j++){

@@ -16,6 +16,7 @@ public class UpdateThread extends Thread{
 	private int blockSize = 0;
 	private boolean isDefaultBlockSize;
 	private boolean toStop = false;
+	private boolean isParallelLevelUpdate;
 	private int evalIter = 0;
 	
 	public UpdateThread(CellGrid cellGrid){
@@ -32,19 +33,29 @@ public class UpdateThread extends Thread{
 		int count = 0;
 		double accuTime = 0.0;
 		
+		ExecutorService es = Executors.newFixedThreadPool(parallelLevel);
+		CompletionService<Integer> cs = new ExecutorCompletionService<Integer>(es);
+		if(isDefaultBlockSize){
+			blockSize = cellGrid.getRowNum() / parallelLevel;
+		}
+		
 		while(toStop == false){
 			oldGrid = cellGrid.getGrid();
-			newGrid = new boolean[oldGrid.length][oldGrid[0].length];
+			newGrid = new boolean[cellGrid.getRowNum()][cellGrid.getColNum()];
 			
 			//parallel update//\\//\\//\\\//\\//\\//\\//
 			long startTime = System.currentTimeMillis();
 			
-			ExecutorService es = Executors.newFixedThreadPool(parallelLevel);
-			CompletionService<Integer> cs = new ExecutorCompletionService<Integer>(es);
-			
-			if(isDefaultBlockSize){
-				blockSize = oldGrid.length / parallelLevel;
+			if(isParallelLevelUpdate){
+				isParallelLevelUpdate = false;
+				es.shutdown();
+				es = Executors.newFixedThreadPool(parallelLevel);
+				cs = new ExecutorCompletionService<Integer>(es);
+				if(isDefaultBlockSize){
+					blockSize = cellGrid.getRowNum() / parallelLevel;
+				}
 			}
+			
 			int numberOfBlocks = oldGrid.length / blockSize;
 			
 			for(int i = 0; i < numberOfBlocks; i++){
@@ -59,7 +70,6 @@ public class UpdateThread extends Thread{
 					e.printStackTrace();
 				}
 			}
-			es.shutdown();
 			
 			long endTime = System.currentTimeMillis();
 			//\\//\\//\\\//\\//\\//\\//\\//\\\//\\//\\//
@@ -84,6 +94,7 @@ public class UpdateThread extends Thread{
 			MainFrame.instance.showUpdateTime((endTime - startTime) / 1000.0);
 			MainFrame.instance.repaintGrid();
 		}
+		es.shutdown();
 	}
 	
 	public synchronized void lagStop(){
@@ -92,6 +103,7 @@ public class UpdateThread extends Thread{
 	
 	public void setParallelLevel(int value){
 		parallelLevel = value;
+		isParallelLevelUpdate = true;
 	}
 	
 	public void setBlockSize(int value){
